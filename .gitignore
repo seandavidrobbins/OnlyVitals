@@ -1,0 +1,17 @@
+# Local planning (not for GitHub)
+CHECKLIST.md
+
+# Editor and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.code-workspace
+*.swp
+*.swo
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.*.example
