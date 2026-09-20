@@ -7,6 +7,7 @@ use Database\Factories\WebsiteHealthFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'website_id',
@@ -23,6 +24,14 @@ class WebsiteHealth extends Model
     use HasFactory;
 
     protected $table = 'website_health';
+
+    /**
+     * @return BelongsTo<Website, $this>
+     */
+    public function website(): BelongsTo
+    {
+        return $this->belongsTo(Website::class);
+    }
 
     /**
      * @return array<string, string>
