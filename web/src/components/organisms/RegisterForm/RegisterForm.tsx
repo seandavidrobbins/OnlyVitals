@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/atoms/Button";
+import { useAuth } from "@/components/common/AuthProvider";
 import { FormField } from "@/components/molecules/FormField";
 import { ApiValidationError, register } from "@/lib/api";
-import { persistToken } from "@/lib/token";
 
 export function RegisterForm() {
   const router = useRouter();
+  const auth = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +35,7 @@ export function RegisterForm() {
         password,
         password_confirmation: passwordConfirmation,
       });
-      persistToken(response.token);
+      auth.login(response);
       router.push("/");
     } catch (error) {
       if (error instanceof ApiValidationError) {

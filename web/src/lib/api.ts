@@ -1,3 +1,5 @@
+import { getToken } from "@/lib/token";
+
 export type HealthResponse = {
   status: "ok";
 };
@@ -34,8 +36,24 @@ function getApiBaseUrl(): string {
   return baseUrl.replace(/\/$/, "");
 }
 
+function requestHeaders(): HeadersInit {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+
+  const token = getToken();
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
 export async function getHealth(): Promise<HealthResponse> {
   const response = await fetch(`${getApiBaseUrl()}/health`, {
+    headers: requestHeaders(),
     cache: "no-store",
   });
 
@@ -82,6 +100,21 @@ function extractValidationErrors(data: unknown): Record<string, string[]> {
   return errors;
 }
 
+function isUser(data: unknown): data is User {
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
+
+  return (
+    "id" in data &&
+    typeof data.id === "number" &&
+    "name" in data &&
+    typeof data.name === "string" &&
+    "email" in data &&
+    typeof data.email === "string"
+  );
+}
+
 function isAuthResponse(data: unknown): data is AuthResponse {
   if (typeof data !== "object" || data === null) {
     return false;
@@ -95,25 +128,13 @@ function isAuthResponse(data: unknown): data is AuthResponse {
     return false;
   }
 
-  const user = data.user;
-
-  return (
-    "id" in user &&
-    typeof user.id === "number" &&
-    "name" in user &&
-    typeof user.name === "string" &&
-    "email" in user &&
-    typeof user.email === "string"
-  );
+  return isUser(data.user);
 }
 
 async function postAuth(path: string, body: unknown): Promise<AuthResponse> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: requestHeaders(),
     body: JSON.stringify(body),
     cache: "no-store",
   });
@@ -145,4 +166,37 @@ export function login(payload: {
   password: string;
 }): Promise<AuthResponse> {
   return postAuth("/login", payload);
+}
+
+export async function getMe(): Promise<User> {
+  const response = await fetch(`${getApiBaseUrl()}/me`, {
+    headers: requestHeaders(),
+    cache: "no-store",
+  });
+
+  const data: unknown = await response.json();
+
+  if (
+    !response.ok ||
+    typeof data !== "object" ||
+    data === null ||
+    !("user" in data) ||
+    !isUser(data.user)
+  ) {
+    throw new Error(`Current user request failed with status ${response.status}`);
+  }
+
+  return data.user;
+}
+
+export async function logoutRequest(): Promise<void> {
+  const response = await fetch(`${getApiBaseUrl()}/logout`, {
+    method: "POST",
+    headers: requestHeaders(),
+    cache: "no-store",
+  });
+
+  if (!response.ok && response.status !== 401) {
+    throw new Error(`Logout failed with status ${response.status}`);
+  }
 }

@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/atoms/Button";
+import { useAuth } from "@/components/common/AuthProvider";
 import { FormField } from "@/components/molecules/FormField";
 import { ApiValidationError, login } from "@/lib/api";
-import { persistToken } from "@/lib/token";
 
 export function LoginForm() {
   const router = useRouter();
+  const auth = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
@@ -25,7 +26,7 @@ export function LoginForm() {
 
     try {
       const response = await login({ email, password });
-      persistToken(response.token);
+      auth.login(response);
       router.push("/");
     } catch (error) {
       if (error instanceof ApiValidationError) {
