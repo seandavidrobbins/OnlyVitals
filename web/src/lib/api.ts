@@ -15,6 +15,16 @@ export type AuthResponse = {
   token: string;
 };
 
+export type Website = {
+  id: number;
+  name: string;
+  url: string;
+  cms_type: "wordpress" | "other";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export class ApiValidationError extends Error {
   constructor(public readonly errors: Record<string, string[]>) {
     super("The given data was invalid.");
@@ -187,6 +197,51 @@ export async function getMe(): Promise<User> {
   }
 
   return data.user;
+}
+
+function isWebsite(data: unknown): data is Website {
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
+
+  return (
+    "id" in data &&
+    typeof data.id === "number" &&
+    "name" in data &&
+    typeof data.name === "string" &&
+    "url" in data &&
+    typeof data.url === "string" &&
+    "cms_type" in data &&
+    (data.cms_type === "wordpress" || data.cms_type === "other") &&
+    "notes" in data &&
+    (typeof data.notes === "string" || data.notes === null) &&
+    "created_at" in data &&
+    typeof data.created_at === "string" &&
+    "updated_at" in data &&
+    typeof data.updated_at === "string"
+  );
+}
+
+export async function getWebsites(): Promise<Website[]> {
+  const response = await fetch(`${getApiBaseUrl()}/websites`, {
+    headers: requestHeaders(),
+    cache: "no-store",
+  });
+
+  const data: unknown = await response.json();
+
+  if (
+    !response.ok ||
+    typeof data !== "object" ||
+    data === null ||
+    !("websites" in data) ||
+    !Array.isArray(data.websites) ||
+    !data.websites.every(isWebsite)
+  ) {
+    throw new Error(`Websites request failed with status ${response.status}`);
+  }
+
+  return data.websites;
 }
 
 export async function logoutRequest(): Promise<void> {

@@ -1,16 +1,9 @@
 import type { ReactNode } from "react";
 
 import { EmptyState } from "@/components/molecules/EmptyState";
+import type { Website } from "@/lib/api";
 
-export type Website = {
-  id: number;
-  name: string;
-  url: string;
-  cms_type: "wordpress" | "other";
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-};
+export type { Website };
 
 const cmsTypeLabel: Record<Website["cms_type"], string> = {
   wordpress: "WordPress",
