@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/components/common/AuthProvider";
@@ -48,5 +49,20 @@ export function WebsiteList() {
     );
   }
 
-  return <WebsiteTable websites={websites} />;
+  const addWebsiteLink = (
+    <Link href="/websites/new" className="font-medium text-foreground underline">
+      Add website
+    </Link>
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      {websites.length > 0 ? <p>{addWebsiteLink}</p> : null}
+      <WebsiteTable
+        websites={websites}
+        emptyAction={addWebsiteLink}
+        getEditHref={(website) => `/websites/${website.id}/edit`}
+      />
+    </div>
+  );
 }

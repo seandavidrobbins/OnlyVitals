@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { EmptyState } from "@/components/molecules/EmptyState";
@@ -13,9 +14,14 @@ const cmsTypeLabel: Record<Website["cms_type"], string> = {
 type WebsiteTableProps = {
   websites: Website[];
   emptyAction?: ReactNode;
+  getEditHref?: (website: Website) => string;
 };
 
-export function WebsiteTable({ websites, emptyAction }: WebsiteTableProps) {
+export function WebsiteTable({
+  websites,
+  emptyAction,
+  getEditHref,
+}: WebsiteTableProps) {
   if (websites.length === 0) {
     return (
       <EmptyState
@@ -42,9 +48,14 @@ export function WebsiteTable({ websites, emptyAction }: WebsiteTableProps) {
             <th scope="col" className="py-2 pr-4 font-medium text-foreground">
               CMS
             </th>
-            <th scope="col" className="py-2 font-medium text-foreground">
+            <th scope="col" className="py-2 pr-4 font-medium text-foreground">
               Notes
             </th>
+            {getEditHref ? (
+              <th scope="col" className="py-2 font-medium text-foreground">
+                <span className="sr-only">Actions</span>
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -67,9 +78,19 @@ export function WebsiteTable({ websites, emptyAction }: WebsiteTableProps) {
                 </a>
               </td>
               <td className="py-3 pr-4">{cmsTypeLabel[website.cms_type]}</td>
-              <td className="py-3 text-zinc-600 dark:text-zinc-400">
+              <td className="py-3 pr-4 text-zinc-600 dark:text-zinc-400">
                 {website.notes ?? "—"}
               </td>
+              {getEditHref ? (
+                <td className="py-3">
+                  <Link
+                    href={getEditHref(website)}
+                    className="font-medium text-foreground underline"
+                  >
+                    Edit
+                  </Link>
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>

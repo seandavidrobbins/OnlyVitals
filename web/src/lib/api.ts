@@ -222,6 +222,26 @@ function isWebsite(data: unknown): data is Website {
   );
 }
 
+export type WebsitePayload = {
+  name: string;
+  url: string;
+  cms_type: Website["cms_type"];
+  notes: string | null;
+};
+
+function parseWebsiteResponse(data: unknown, path: string, status: number): Website {
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !("website" in data) ||
+    !isWebsite(data.website)
+  ) {
+    throw new Error(`Request to ${path} failed with status ${status}`);
+  }
+
+  return data.website;
+}
+
 export async function getWebsites(): Promise<Website[]> {
   const response = await fetch(`${getApiBaseUrl()}/websites`, {
     headers: requestHeaders(),
@@ -242,6 +262,68 @@ export async function getWebsites(): Promise<Website[]> {
   }
 
   return data.websites;
+}
+
+export async function getWebsite(id: number): Promise<Website> {
+  const path = `/websites/${id}`;
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+    headers: requestHeaders(),
+    cache: "no-store",
+  });
+
+  const data: unknown = await response.json();
+
+  if (!response.ok) {
+    throw new Error(`Website request failed with status ${response.status}`);
+  }
+
+  return parseWebsiteResponse(data, path, response.status);
+}
+
+export async function createWebsite(payload: WebsitePayload): Promise<Website> {
+  const response = await fetch(`${getApiBaseUrl()}/websites`, {
+    method: "POST",
+    headers: requestHeaders(),
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  const data: unknown = await response.json();
+
+  if (response.status === 422) {
+    throw new ApiValidationError(extractValidationErrors(data));
+  }
+
+  if (!response.ok) {
+    throw new Error(`Create website failed with status ${response.status}`);
+  }
+
+  return parseWebsiteResponse(data, "/websites", response.status);
+}
+
+export async function updateWebsite(
+  id: number,
+  payload: WebsitePayload,
+): Promise<Website> {
+  const path = `/websites/${id}`;
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+    method: "PUT",
+    headers: requestHeaders(),
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  const data: unknown = await response.json();
+
+  if (response.status === 422) {
+    throw new ApiValidationError(extractValidationErrors(data));
+  }
+
+  if (!response.ok) {
+    throw new Error(`Update website failed with status ${response.status}`);
+  }
+
+  return parseWebsiteResponse(data, path, response.status);
 }
 
 export async function logoutRequest(): Promise<void> {
