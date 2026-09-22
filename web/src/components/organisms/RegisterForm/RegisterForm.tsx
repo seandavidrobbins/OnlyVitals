@@ -36,7 +36,7 @@ export function RegisterForm() {
         password_confirmation: passwordConfirmation,
       });
       auth.login(response);
-      router.push("/");
+      router.push("/dashboard");
     } catch (error) {
       if (error instanceof ApiValidationError) {
         setErrors({

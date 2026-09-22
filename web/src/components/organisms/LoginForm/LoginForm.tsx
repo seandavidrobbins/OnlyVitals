@@ -27,7 +27,7 @@ export function LoginForm() {
     try {
       const response = await login({ email, password });
       auth.login(response);
-      router.push("/");
+      router.push("/dashboard");
     } catch (error) {
       if (error instanceof ApiValidationError) {
         setErrors({
